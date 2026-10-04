@@ -12,6 +12,8 @@ Each instruction can be invoked to generate entropic bytes from different random
 - MagicBlock
 - Blueshift ECVRF
 
+Note: Orao not added yet, pending Anchor v1 bump
+
 ## Built With
 
 ### Languages
