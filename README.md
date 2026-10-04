@@ -62,7 +62,7 @@ just build
 Run tests.
 
 ```sh
-just test pyth-core
+bun run test
 ```
 
 ## Issues
