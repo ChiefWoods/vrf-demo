@@ -3,7 +3,7 @@ import { Keypair, PublicKey, SystemProgram, Transaction } from "@solana/web3.js"
 import { SecretKey } from "@blueshift-gg/solana-ecvrf";
 import { AnchorUtils, ON_DEMAND_DEVNET_QUEUE, Randomness } from "@switchboard-xyz/on-demand";
 
-import { createTestContext } from "./common.ts";
+import { createTestContext, runAndLogRandomness } from "./common.ts";
 
 // MagicBlock's base-layer default queue. The current TypeScript SDK does not
 // expose VRF queue constants; this must match `vrf::consts::DEFAULT_QUEUE`.
@@ -12,15 +12,17 @@ const MAGICBLOCK_BASE_LAYER_VRF_QUEUE = new PublicKey(
 );
 
 test("MagicBlock", async () => {
-  const { payer, program } = await createTestContext();
+  const { connection, payer, program } = await createTestContext();
   const seed = Array.from(Keypair.generate().publicKey.toBytes());
 
-  await program.methods.requestMagicblock!(seed)
-    .accounts({
-      payer: payer.publicKey,
-      oracleQueue: MAGICBLOCK_BASE_LAYER_VRF_QUEUE,
-    })
-    .rpc();
+  await runAndLogRandomness(connection, program.programId, "MagicBlock VRF randomness", () =>
+    program.methods.requestMagicblock!(seed)
+      .accounts({
+        payer: payer.publicKey,
+        oracleQueue: MAGICBLOCK_BASE_LAYER_VRF_QUEUE,
+      })
+      .rpc(),
+  );
 });
 
 test("Switchboard On-Demand", async () => {
@@ -46,11 +48,16 @@ test("Switchboard On-Demand", async () => {
     .accounts({ randomness: randomness.pubkey })
     .instruction();
 
-  await randomness.commitAndReveal([consume], [context.payer], queue);
+  await runAndLogRandomness(
+    context.connection,
+    context.program.programId,
+    "Switchboard On-Demand randomness",
+    () => randomness.commitAndReveal([consume], [context.payer], queue),
+  );
 });
 
 test("Blueshift ECVRF", async () => {
-  const { program } = await createTestContext();
+  const { connection, program } = await createTestContext();
   const keypair = Keypair.generate();
   const secretKey = SecretKey.fromKeypair(keypair.secretKey);
   const alpha = Uint8Array.from(Buffer.from("vrf-demo:blueshift-ecvrf"));
@@ -59,11 +66,13 @@ test("Blueshift ECVRF", async () => {
   // Prove the client and on-chain verifier agree before submitting the proof.
   proof.verify(secretKey.publicKey, alpha);
 
-  await program.methods.verifyBlueshiftEcvrf!(
-    Array.from(secretKey.publicKey.bytes),
-    Array.from(proof.bytes),
-    Buffer.from(alpha),
-  )
-    .accounts({ systemProgram: SystemProgram.programId })
-    .rpc();
+  await runAndLogRandomness(connection, program.programId, "Blueshift ECVRF randomness", () =>
+    program.methods.verifyBlueshiftEcvrf!(
+      Array.from(secretKey.publicKey.bytes),
+      Array.from(proof.bytes),
+      Buffer.from(alpha),
+    )
+      .accounts({ systemProgram: SystemProgram.programId })
+      .rpc(),
+  );
 });
