@@ -26,7 +26,8 @@ test("MagicBlock", async () => {
   );
 });
 
-test("Switchboard On-Demand", async () => {
+// Switchboard is deprecated.
+test.skip("Switchboard On-Demand", async () => {
   const context = await createTestContext();
   const sbProgram = await AnchorUtils.loadProgramFromConnection(
     context.connection,
