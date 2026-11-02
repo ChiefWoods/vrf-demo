@@ -37,8 +37,9 @@ export async function createTestContext(): Promise<TestContext> {
 
 /**
  * Runs an action while listening for the randomness emitted by this program.
- * MagicBlock fulfills in a later callback transaction; Switchboard and
- * Blueshift emit their values in the submitted transaction.
+ * MagicBlock fulfills in a later callback transaction. Orao is fulfilled by
+ * its oracle, then read back with consume. Switchboard and Blueshift emit
+ * their values in the submitted transaction.
  */
 export async function runAndLogRandomness<T>(
   connection: Connection,

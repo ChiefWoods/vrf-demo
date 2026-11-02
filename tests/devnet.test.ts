@@ -1,6 +1,7 @@
 import { test } from "bun:test";
 import { Keypair, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { SecretKey } from "@blueshift-gg/solana-ecvrf";
+import { Orao, networkStateAccountAddress, randomnessAccountAddress } from "@orao-network/solana-vrf";
 import { AnchorUtils, ON_DEMAND_DEVNET_QUEUE, Randomness } from "@switchboard-xyz/on-demand";
 
 import { createTestContext, runAndLogRandomness } from "./common.ts";
@@ -55,6 +56,31 @@ test("Switchboard On-Demand", async () => {
     () => randomness.commitAndReveal([consume], [context.payer], queue),
   );
 });
+
+test("Orao VRF", async () => {
+  const { connection, payer, program, provider } = await createTestContext();
+  const seed = Keypair.generate().publicKey.toBytes();
+  const vrf = new Orao(provider);
+  const networkState = networkStateAccountAddress();
+  const request = randomnessAccountAddress(seed);
+  const { config } = await vrf.getNetworkState();
+
+  await runAndLogRandomness(connection, program.programId, "Orao VRF randomness", async () => {
+    await program.methods.requestOrao!(Array.from(seed))
+      .accounts({
+        payer: payer.publicKey,
+        networkState,
+        treasury: config.treasury,
+        request,
+        vrf: vrf.programId,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    await vrf.waitFulfilled(seed);
+    return program.methods.consumeOrao!().accounts({ request }).rpc();
+  });
+}, 120_000);
 
 test("Blueshift ECVRF", async () => {
   const { connection, program } = await createTestContext();

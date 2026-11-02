@@ -8,6 +8,7 @@
   "devDependencies": {
     "@blueshift-gg/solana-ecvrf": "^0.0.1",
     "@coral-xyz/anchor": "0.31.1",
+    "@orao-network/solana-vrf": "0.9",
     "@solana/web3.js": "1.98.4",
     "@switchboard-xyz/on-demand": "3.10.6",
     "@t3-oss/env-core": "^0.13.11",

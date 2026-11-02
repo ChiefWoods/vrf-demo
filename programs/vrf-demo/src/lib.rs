@@ -26,6 +26,12 @@ pub mod vrf_demo {
     pub fn consume_switchboard_on_demand(ctx: Context<ConsumeSwitchboardOnDemand>) -> Result<()> {
         instructions::switchboard_on_demand::consume_switchboard_on_demand(ctx)
     }
+    pub fn request_orao(ctx: Context<RequestOrao>, seed: [u8; 32]) -> Result<()> {
+        instructions::orao::request_orao(ctx, seed)
+    }
+    pub fn consume_orao(ctx: Context<ConsumeOrao>) -> Result<()> {
+        instructions::orao::consume_orao(ctx)
+    }
     pub fn verify_blueshift_ecvrf(
         ctx: Context<VerifyBlueshiftEcvrf>,
         public_key: [u8; 32],
